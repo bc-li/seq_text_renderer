@@ -63,7 +63,9 @@ class WordCorpus(Corpus):
         if self.cfg.filter_by_chars:
             texts = Corpus.filter_by_chars(texts, self.cfg.chars_file)
             if self.cfg.filter_font:
-                self.font_manager.filter_font_path(self.cfg.filter_font_min_support_chars)
+                self.font_manager.filter_font_path(
+                    self.cfg.filter_font_min_support_chars
+                )
 
         for text in texts:
             self.words.extend(text.split(self.cfg.separator))
@@ -73,14 +75,15 @@ class WordCorpus(Corpus):
         if len(self.words) < self.cfg.num_word[1]:
             raise PanicError("too few words")
 
-    def get_text(self):
+    def get_text(self, num_image):
         self.cfg: WordCorpusCfg
         if self.cfg.num_word[0] == self.cfg.num_word[1]:
             length = self.cfg.num_word[0]
         else:
             length = np.random.randint(*self.cfg.num_word)
-
-        start = np.random.randint(0, len(self.words) - length + 1)
+        start = num_image
+        print("[GET TEXT] start: ", start)
+        # start = np.random.randint(0, len(self.words) - length + 1)
         words = self.words[start : start + length]
         word = self.cfg.separator.join(words)
         return word
