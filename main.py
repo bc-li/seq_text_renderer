@@ -65,20 +65,25 @@ class DBWriterProcess(Process):
             raise e
 
 
-def generate_img(data_queue):
-    data = render()
+# def generate_img(data_queue, num_image: int, num_processes: int):
+def generate_img(*args):
+    print("[DEBUG GENERATE_IMG]: num_image = ", args[1])
+    if args[2] == 0:
+        render = Render(args[3], args[1])
+        data = render()
+
     if data is not None:
-        data_queue.put({"image": data[0], "label": data[1]})
+        args[0].put({"image": data[0], "label": data[1]})
 
 
 def process_setup(*args):
-    global render
+    # global render
     import numpy as np
 
     # Make sure different process has different random seed
     np.random.seed()
 
-    render = Render(args[0])
+    # render = Render(args[0], 2)
     logger.info(f"Finish setup image generate process: {os.getpid()}")
 
 
@@ -109,8 +114,16 @@ if __name__ == "__main__":
 
         if args.num_processes == 0:
             process_setup(generator_cfg.render_cfg)
-            for _ in range(generator_cfg.num_image):
-                generate_img(data_queue)
+            for i in range(generator_cfg.num_image - 1):
+                # print(f"Generate image {i+1}/{generator_cfg.num_image}")
+                print("[GENERATE] {}/{}".format(i + 1, generator_cfg.num_image))
+                param = [
+                    data_queue,
+                    i,
+                    args.num_processes,
+                    generator_cfg.render_cfg,
+                ]
+                generate_img(*param)
             data_queue.put(STOP_TOKEN)
             db_writer_process.join()
         else:
