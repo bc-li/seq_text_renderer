@@ -61,15 +61,18 @@ class Corpus:
     """
 
     def __init__(
-        self, cfg: "CorpusCfg",
+        self,
+        cfg: "CorpusCfg",
     ):
         self.cfg = cfg
         self.font_manager = FontManager(
-            cfg.font_dir, cfg.font_list_file, cfg.font_size,
+            cfg.font_dir,
+            cfg.font_list_file,
+            cfg.font_size,
         )
 
     @retry
-    def sample(self):
+    def sample(self, num_image: int):
         """
         This method ensures that the selected font supports all characters.
 
@@ -78,7 +81,7 @@ class Corpus:
 
         """
         try:
-            text = self.get_text()
+            text = self.get_text(num_image)
         except Exception as e:
             logger.exception(e)
             raise RetryError()
