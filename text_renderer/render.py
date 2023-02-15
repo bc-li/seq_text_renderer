@@ -1,6 +1,6 @@
 from typing import Tuple, List
 
-from PIL import Image
+from PIL import Image, ImageOps, ImageColor
 from loguru import logger
 
 import cv2
@@ -21,9 +21,10 @@ from text_renderer.utils.types import FontColor, is_list
 
 
 class Render:
-    def __init__(self, cfg: RenderCfg):
+    def __init__(self, cfg: RenderCfg, num_image: int = 3):
         self.cfg = cfg
         self.layout = cfg.layout
+        self.num_image = num_image
         if isinstance(cfg.corpus, list) and len(cfg.corpus) == 1:
             self.corpus = cfg.corpus[0]
         else:
@@ -88,7 +89,8 @@ class Render:
             raise e
 
     def gen_single_corpus(self) -> Tuple[PILImage, str, PILImage, PILImage]:
-        font_text = self.corpus.sample()
+        print("[DEBUG GEN_SINGLE_CORPUS]: num_image = ", self.num_image)
+        font_text = self.corpus.sample(self.num_image)
 
         bg = self.bg_manager.get_bg()
         if self.cfg.text_color_cfg is not None:
@@ -194,7 +196,9 @@ class Render:
         return img, merged_text, cropped_bg, transformed_text_mask
 
     def paste_text_mask_on_bg(
-        self, bg: PILImage, transformed_text_mask: PILImage
+        self,
+        bg: PILImage,
+        transformed_text_mask: PILImage,
     ) -> Tuple[PILImage, PILImage]:
         """
 
@@ -205,7 +209,11 @@ class Render:
         Returns:
 
         """
+        output_size = (80, 80)
         x_offset, y_offset = utils.random_xy_offset(transformed_text_mask.size, bg.size)
+        print("x_offset, y_offset", x_offset, y_offset)
+        print("transformed_text_mask.size", transformed_text_mask.size)
+
         bg = self.bg_manager.guard_bg_size(bg, transformed_text_mask.size)
         bg = bg.crop(
             (
@@ -215,12 +223,34 @@ class Render:
                 y_offset + transformed_text_mask.height,
             )
         )
+        width_diff = output_size[0] - bg.width
+        if width_diff > 0:
+            bg = ImageOps.pad(bg, (output_size[0], bg.height))
+        print("bg.size", bg.size)
         if self.cfg.return_bg_and_mask:
             _bg = bg.copy()
         else:
             _bg = bg
         bg.paste(transformed_text_mask, (0, 0), mask=transformed_text_mask)
+
+        # resized_img = img.resize(output_size, resample=Image.BICUBIC)
+
+        # orig_size = bg.size
+        # bg = np.array(bg, dtype=np.float32) / 255.0
+        # bg = Image.fromarray((bg * 255).astype(np.uint8))
+        bg = bg.resize(output_size, resample=Image.BICUBIC)
+        # bg = bg.convert("RGB")
+        print("bg size after resize = ", bg.size)
         return bg, _bg
+
+    # img = Image.open('path/to/image.jpg')
+
+    # Define the desired output size
+    # output_size = (640, 480)
+
+    # Resize the image and expand it to fill the output size
+
+    # expanded_img = ImageOps.expand(resized_img, border=(0,0) + tuple(max((d_o-d_i)/2, 0) for d_i, d_o in zip(orig_size, output_size)), fill=ImageColor.getrgb('#ffffff'))
 
     def get_text_color(self, bg: PILImage, text: str, font: FreeTypeFont) -> FontColor:
         # TODO: better get text color
