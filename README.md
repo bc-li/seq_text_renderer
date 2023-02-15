@@ -1,4 +1,7 @@
 # Text Renderer
+
+> Here are my modifications to Text Renderer, which allow for sequential rendering of text lines from a corpus. Please note that in order to use this feature, you must disable multiprocessing by setting num_process to 0. For all other use cases, please refer to the original repository at https://oh-my-ocr.github.io, as some of the other code may have been affected by these modifications.
+
 Generate text line images for training deep learning OCR model (e.g. [CRNN](https://github.com/bgshih/crnn)). ![example](./image/example.gif)
 
 - [x] Modular design. You can easily add different components: [Corpus](https://oh-my-ocr.github.io/text_renderer/corpus/index.html), [Effect](https://oh-my-ocr.github.io/text_renderer/effect/index.html), [Layout](https://oh-my-ocr.github.io/text_renderer/layout/index.html).
@@ -27,6 +30,7 @@ python3 main.py \
     --num_processes 2 \
     --log_period 10
 ```
+
 
 The data is generated in the `example_data/output` directory. A `labels.json` file contains all annotations in follow format:
 ```json
