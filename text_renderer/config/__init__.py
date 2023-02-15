@@ -5,7 +5,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Union
-
+import traceback
 import numpy as np
 from PIL.Image import Image as PILImage
 
@@ -197,7 +197,10 @@ def get_cfg(config_file: str) -> List[GeneratorCfg]:
 
     """
     module = import_module_from_file(config_file)
+    print(module)
     cfgs = getattr(module, "configs", None)
+    print(config_file)
+    print(cfgs)
     if cfgs is None:
         raise RuntimeError(f"Load configs failed: {config_file}")
 
@@ -219,17 +222,24 @@ def import_module_from_file(full_path_to_module):
 
         # Get module name and path from full path
         module_dir, module_file = os.path.split(full_path_to_module)
+        print("module_dir", module_dir)
+        print("module_file", module_file)
+
         module_name, module_ext = os.path.splitext(module_file)
+        print("module_name", module_name)
+        print("module_ext", module_ext)
 
         # Get module "spec" from filename
         spec = importlib.util.spec_from_file_location(module_name, full_path_to_module)
-
+        print("spec", spec)
         module = spec.loader.load_module()
+        print("module", module)
 
     except Exception as ec:
         # Simple error printing
         # Insert "sophisticated" stuff here
-        print(ec)
+        print("Error:", e)
+        traceback.print_exc()
 
     finally:
         return module
